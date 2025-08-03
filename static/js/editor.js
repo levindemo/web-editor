@@ -138,4 +138,4 @@ setInterval(async () => {
     } catch (error) {
         statusDiv.textContent = "Server unreachable";
     }
-}, 10000);
+}, 60000);

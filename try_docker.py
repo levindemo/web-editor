@@ -17,6 +17,9 @@ import docker
 
 # recommend to use env var to config docker client
 # client = docker.from_env()
+# do not use the above when running in windows
+# docker.errors.DockerException: Error while fetching server API version: Not supported URL scheme http+docker
+
 
 base_url = 'tcp://localhost:2375'
 # base_url = 'tcp://172.26.224.1:2375'

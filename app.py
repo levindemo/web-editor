@@ -3,11 +3,12 @@ import json
 import time
 import docker
 from flask import Flask, render_template, request, jsonify
-#load .env
+# load .env
 from dotenv import load_dotenv
+from util import decode_bytes_recursively
+
 load_dotenv()
 import logging
-
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,7 @@ try:
 
     # client = docker.from_env()
 except Exception as e:
-    print("Fail to start docker client2, error is: ", e)
+    logger.error(f"Fail to start docker client2, error is: {str(e)}")
     client = None
 # 容器超时时间（秒）
 CONTAINER_TIMEOUT = 300  # 5分钟
@@ -40,8 +41,13 @@ def create_container():
         base_image = os.getenv("CODE_EXEC_DOCKER_IMAGE", "ubuntu:latest")
         client.images.pull(base_image)
         logger.info(f"Successfully pulled {base_image} image")
-        random_name_id_with_day_str = os.getenv("CODE_EXEC_CONTAINER_PREFIX", "python-container") + str(
-            int(time.time()))
+        # format current date time as ISO format
+        iso_date_str = time.strftime("%Y%m%d%H%M%S", time.localtime())
+        random_name_id_with_day_str = (os.getenv("CODE_EXEC_CONTAINER_PREFIX",
+                                                 "python-container")
+                                       + "-" + iso_date_str
+                                       + "-" + str(int(time.time()))
+                                       )
         logger.info(f"Start to create container {random_name_id_with_day_str}")
         container = client.containers.create(
             base_image,
@@ -133,35 +139,41 @@ def get_or_create_container():
 
 
 def execute_code(container_id, code):
-    """在指定容器中执行Python代码"""
     logger.info(f"start to execute code in container {container_id}")
     if container_id not in active_containers:
         raise Exception("Container not found")
 
     container = active_containers[container_id]["container"]
 
-    # 将代码写入临时文件（处理单引号转义）
     escaped_code = code.replace("'", "'\\''")
-    write_cmd = f"echo '{escaped_code}' > /tmp/code.py"
+    write_cmd = f"touch /tmp/code.py"
     exec_result = container.exec_run(
         write_cmd,
         detach=False,
         tty=True
     )
-
+    logger.info(f"create code file, result {exec_result}")
+    write_cmd = f"echo '{escaped_code}' > /tmp/code.py"
+    # use cat to write code in to code.py
+    # write_cmd = f"cat > /tmp/code.py <<EOF\n{escaped_code}\nEOF"
+    exec_result = container.exec_run(
+        write_cmd,
+        detach=False,
+        tty=True
+    )
+    logger.info(f"write code to file result is {exec_result}")
     if exec_result.exit_code != 0:
         return {
             "success": False,
             "output": f"Error writing code to file: {exec_result.output}"
         }
 
-    # 执行Python代码
     try:
+        logger.info("start to execute code")
         exec_result = container.exec_run(
             "python3 /tmp/code.py",
             detach=False,
-            tty=True,
-            timeout=EXECUTION_TIMEOUT
+            tty=True
         )
 
         return {
@@ -172,7 +184,7 @@ def execute_code(container_id, code):
     except docker.errors.ContainerError as e:
         return {
             "success": False,
-            "output": f"Execution timed out after {EXECUTION_TIMEOUT} seconds"
+            "output": f"Container error: {str(e)}"
         }
     except Exception as e:
         return {
@@ -189,7 +201,7 @@ def index():
 
 @app.route('/execute', methods=['POST'])
 def execute():
-    """执行代码的API端点"""
+    """for code execution on active container"""
     try:
         data = request.json
         code = data.get('code', '')
@@ -200,12 +212,11 @@ def execute():
                 "output": "No code provided"
             })
 
-        # 获取或创建容器
         container_id = get_or_create_container()
-        print("container_id: ", container_id)
-        # 执行代码
+        logger.info(f"pickup container_id: {container_id}")
         result = execute_code(container_id, code)
-
+        logger.info(f"result is {result}")
+        result = decode_bytes_recursively(result)
         return jsonify(result)
 
     except Exception as e:
@@ -223,7 +234,6 @@ def health_check():
 
 
 if __name__ == '__main__':
-    # 确保应用在退出时清理所有容器
     import atexit
 
 
@@ -236,7 +246,8 @@ if __name__ == '__main__':
                 pass
 
 
+    # make sure the containers are all stop and remove when app exit
     atexit.register(cleanup_on_exit)
 
-    # 仅在开发环境使用debug模式
+    # only enable debug on local development
     app.run(host='0.0.0.0', port=5000, debug=False)
