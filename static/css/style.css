@@ -1,0 +1,72 @@
+/* 基础样式 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 编辑器和输出区域样式 */
+#editor {
+    width: 100%;
+    font-size: 14px;
+}
+
+#output-container {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+}
+
+/* 状态条样式 */
+#status-bar {
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* 按钮样式增强 */
+button {
+    cursor: pointer;
+}
+
+/* 加载动画 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 暗色模式 */
+.dark-mode {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+.dark-mode #status-bar {
+    background-color: #333;
+    color: #f0f0f0;
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+    main {
+        padding: 20px 10px;
+    }
+
+    #editor, #output-container {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-cols-1 lg:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .flex-col h-[70vh] {
+        height: 50vh;
+    }
+}

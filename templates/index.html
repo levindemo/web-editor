@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Web Editor</title>
+    <!-- Ace Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-blue-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fa fa-code mr-2"></i>Python Web Editor
+            </h1>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded hover:bg-blue-700 transition">
+                    <i class="fa fa-moon-o"></i>
+                </button>
+                <button id="help-btn" class="p-2 rounded hover:bg-blue-700 transition">
+                    <i class="fa fa-question-circle"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Editor Panel -->
+            <div class="flex flex-col h-[70vh] shadow-lg rounded-lg overflow-hidden">
+                <div class="bg-gray-800 text-white p-3 flex justify-between items-center">
+                    <h2 class="font-semibold">Code Editor</h2>
+                    <div class="flex space-x-2">
+                        <button id="run-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded transition flex items-center">
+                            <i class="fa fa-play mr-1"></i> Run
+                        </button>
+                        <button id="clear-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded transition">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div id="editor" class="flex-grow"></div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="flex flex-col h-[70vh] shadow-lg rounded-lg overflow-hidden">
+                <div class="bg-gray-800 text-white p-3">
+                    <h2 class="font-semibold">Output</h2>
+                </div>
+                <div id="output-container" class="flex-grow bg-gray-900 text-gray-100 p-4 overflow-auto">
+                    <div id="output" class="whitespace-pre-wrap">
+                        Your code output will appear here.
+                        <br><br>
+                        Example code:
+                        <pre class="text-green-400">print("Hello, World!")
+x = 42
+print(f"The answer is {x}")</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="mt-4 p-3 bg-gray-200 rounded-lg text-sm flex justify-between">
+            <div id="status">Ready</div>
+            <div>Python 3.8+ in Ubuntu Container</div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div class="p-5 border-b">
+                <h2 class="text-xl font-bold">How to Use</h2>
+                <button id="close-help" class="float-right text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Write your Python code in the editor panel</li>
+                    <li>Click "Run" to execute your code in an isolated Ubuntu container</li>
+                    <li>View the output in the output panel</li>
+                    <li>Code execution is limited to 10 seconds</li>
+                    <li>Containers are automatically cleaned up after 5 minutes</li>
+                    <li>No network access is provided for security reasons</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/editor.js"></script>
+</body>
+</html>
